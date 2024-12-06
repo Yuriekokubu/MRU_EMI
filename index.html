@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fetch TERMTEXT by MRU</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 10px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fetch TERMTEXT by MRU</h1>
+    <label for="mruInput">Enter MRU values (space-separated):</label>
+    <br>
+    <input type="text" id="mruInput" placeholder="e.g., MTP9844 ABAH9801">
+    <br>
+    <button onclick="fetchTermTexts()">Fetch TERMTEXT</button>
+
+    <h2>Results:</h2>
+    <table id="resultsTable">
+        <thead>
+            <tr>
+                <th>MRU</th>
+                <th>TERMTEXT</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Results will be inserted here -->
+        </tbody>
+    </table>
+
+    <script>
+        async function fetchTermTexts() {
+            const mruInput = document.getElementById('mruInput').value;
+            const mruList = mruInput.split(' ').map(mru => mru.trim()).filter(mru => mru); // Split by space, trim, and filter empty values
+            const url = 'http://emi-hfu.pea.co.th/API_BILL/InfoAllMRU'; // API URL
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const results = mruList.map(mru => {
+                    const result = data.find(item => item.MRU === mru);
+                    return {
+                        MRU: mru,
+                        TERMTEXT: result ? result.TERMTEXT : `MRU ${mru} not found`
+                    };
+                });
+
+                displayResults(results);
+            } catch (error) {
+                console.error('Error fetching data:', error.message);
+                alert('Error fetching data. Please try again later.');
+            }
+        }
+
+        function displayResults(results) {
+            const tableBody = document.querySelector('#resultsTable tbody');
+            tableBody.innerHTML = ''; // Clear previous results
+
+            results.forEach(result => {
+                const row = document.createElement('tr');
+                const mruCell = document.createElement('td');
+                const termTextCell = document.createElement('td');
+
+                mruCell.textContent = result.MRU;
+                termTextCell.textContent = result.TERMTEXT;
+
+                row.appendChild(mruCell);
+                row.appendChild(termTextCell);
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>
